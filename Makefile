@@ -20,7 +20,7 @@ db-down:
 	docker compose down
 
 db-verify:
-	docker compose exec -T db psql -U admin -d duyi_db -c "SELECT current_database(), current_user, version();"
+	docker compose exec -T db psql -U admin -d learn_db -c "SELECT current_database(), current_user, version();"
 
 db-shell:
 	docker compose exec -it db psql -U admin -d duyi_db
