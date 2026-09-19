@@ -2,7 +2,7 @@
 
 export PYTHONDONTWRITEBYTECODE := 1
 
-.PHONY: dev debug sync db-up db-down db-verify db-shell db-reset
+.PHONY: dev debug sync db-up db-down db-verify db-shell db-reset db-migrate db-upgrade db-downgrade
 
 dev:
 	uv run --package web-service fastapi dev apps/web-service/app/main.py --port 8080
@@ -27,3 +27,12 @@ db-shell:
 
 db-reset:
 	docker compose exec -T db psql -U admin -d learn_db -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
+
+db-migrate:
+	uv run --package web-service alembic -c apps/web-service/alembic.ini revision --autogenerate -m "$(message)"
+
+db-upgrade:
+	uv run --package web-service alembic -c apps/web-service/alembic.ini upgrade head
+
+db-downgrade:
+	uv run --package web-service alembic -c apps/web-service/alembic.ini downgrade $(version)
