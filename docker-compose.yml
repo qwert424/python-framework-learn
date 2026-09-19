@@ -1,0 +1,25 @@
+# PostgreSQL 本地开发数据库
+# 启动：make db-up
+# 停止：make db-down
+# 验证：make db-verify
+services:
+  db:
+    image: postgres:16
+    container_name: duyi_pg_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: "123123"
+      POSTGRES_DB: duyi_db   # 首次启动时自动创建该数据库
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # 命名卷，数据持久化
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d duyi_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
