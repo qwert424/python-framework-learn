@@ -2,7 +2,7 @@
 
 export PYTHONDONTWRITEBYTECODE := 1
 
-.PHONY: dev debug sync db-up db-down db-verify db-shell
+.PHONY: dev debug sync db-up db-down db-verify db-shell db-test
 
 dev:
 	uv run --package web-service fastapi dev apps/web-service/app/main.py --port 8080
@@ -23,4 +23,7 @@ db-verify:
 	docker compose exec -T db psql -U admin -d learn_db -c "SELECT current_database(), current_user, version();"
 
 db-shell:
-	docker compose exec -it db psql -U admin -d duyi_db
+	docker compose exec -it db psql -U admin -d learn_db
+
+db-test:
+	cd apps/web-service && uv run --package web-service python -m app.model.main
