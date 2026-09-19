@@ -1,19 +1,31 @@
-from pathlib import Path
+# from pathlib import Path
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-from starlette.staticfiles import StaticFiles
 
-BASE_DIR = Path(__file__).resolve().parent
+# from starlette.staticfiles import StaticFiles
 
-# Swagger UI 资源改为本地静态文件，避免依赖被墙的 jsdelivr CDN
+# 根据环境变量决定
+import os
+
+is_production = os.getenv("ENVIRONMENT") == "production"
+
 app = FastAPI(
-    swagger_js_url="/static/swagger/swagger-ui-bundle.js",
-    swagger_css_url="/static/swagger/swagger-ui.css",
-    swagger_favicon_url="/static/swagger/favicon.png",
+    docs_url=None if is_production else "/docs",
+    redoc_url=None if is_production else "/redoc",
+    openapi_url=None if is_production else "/openapi.json",
 )
 
-app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+# BASE_DIR = Path(__file__).resolve().parent
+
+# # Swagger UI 资源改为本地静态文件，避免依赖被墙的 jsdelivr CDN
+# app = FastAPI(
+#     swagger_js_url="/static/swagger/swagger-ui-bundle.js",
+#     swagger_css_url="/static/swagger/swagger-ui.css",
+#     swagger_favicon_url="/static/swagger/favicon.png",
+# )
+
+# app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 
 class Item(BaseModel):
