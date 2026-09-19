@@ -7,8 +7,8 @@ import asyncio
 
 from sqlalchemy import text
 
+from app.core.database import get_engine
 from app.model import Base
-from app.model.engine import get_engine
 
 
 async def init_db() -> None:
