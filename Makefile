@@ -2,7 +2,7 @@
 
 export PYTHONDONTWRITEBYTECODE := 1
 
-.PHONY: dev debug sync db-up db-down db-verify db-shell db-test
+.PHONY: dev debug sync db-up db-down db-verify db-shell db-test db-reset
 
 dev:
 	uv run --package web-service fastapi dev apps/web-service/app/main.py --port 8080
@@ -27,3 +27,6 @@ db-shell:
 
 db-test:
 	cd apps/web-service && uv run --package web-service python -m app.model.main
+
+db-reset:
+	docker compose exec -T db psql -U admin -d learn_db -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
