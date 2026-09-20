@@ -2,7 +2,7 @@
 
 export PYTHONDONTWRITEBYTECODE := 1
 
-.PHONY: dev debug sync db-up db-down db-verify db-shell db-reset db-migrate db-upgrade db-downgrade test test-unit test-integration test-e2e test-smoke
+.PHONY: dev debug sync db-up db-down db-verify db-shell db-reset db-migrate db-upgrade db-downgrade test test-unit test-integration test-e2e test-smoke coverage coverage-html
 
 dev:
 	uv run --package web-service fastapi dev apps/web-service/app/main.py --port 8080
@@ -51,3 +51,11 @@ test-e2e:
 
 test-smoke:
 	uv run pytest apps/web-service/test/unit/ apps/web-service/test/integration/ apps/web-service/test/e2e/ -q -m smoke
+
+coverage:
+	uv run --package web-service coverage run --source=app -m pytest apps/web-service/test/unit/ apps/web-service/test/integration/ -q
+	uv run --package web-service coverage report
+
+coverage-html:
+	uv run --package web-service coverage run --source=app -m pytest apps/web-service/test/unit/ apps/web-service/test/integration/ -q
+	uv run --package web-service coverage html
