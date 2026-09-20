@@ -56,7 +56,7 @@ async def update_sku(
     return result
 
 
-@router.delete("/api/skus/{sku_id}", status_code=204)
+@router.delete("/api/skus/{sku_id}")
 async def delete_sku(sku_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     deleted = await SkuService(db).delete_sku(sku_id)
     if not deleted:

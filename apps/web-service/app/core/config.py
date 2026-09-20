@@ -29,6 +29,8 @@ class WebSettings(_BaseSettingsWithEnv):
     model_config = SettingsConfigDict(env_prefix="WEB_")
 
     app_name: str = "Web Service API"
+    cors_origins: str = ""  # 实际读取 WEB_CORS_ORIGINS，多个来源用逗号分隔
+    cors_expose_headers: str = ""  # 实际读取 WEB_CORS_EXPOSE_HEADERS
 
 
 class DBSettings(_BaseSettingsWithEnv):

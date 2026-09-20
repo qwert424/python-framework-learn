@@ -2,6 +2,8 @@ from fastapi import FastAPI
 
 from app.api.routes import api_router
 from app.core.config import common_settings, web_settings
+from app.core.middleware import register_middleware
+from app.core.openapi import setup_openapi
 from app.exception.handler import register_exception_handlers
 
 is_production = common_settings.environment == "production"
@@ -13,6 +15,11 @@ app = FastAPI(
     openapi_url=None if is_production else "/openapi.json",
 )
 
+# 注册中间件
+register_middleware(app)
+
+# 设置openapi的格式
+setup_openapi(app)
 
 # 注册全局异常处理器（覆盖 Starlette/FastAPI 内置处理器 + 兜底未知异常）
 register_exception_handlers(app)

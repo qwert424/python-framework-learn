@@ -52,7 +52,7 @@ async def update_category(
     return result
 
 
-@router.delete("/{category_id}", status_code=204)
+@router.delete("/{category_id}")
 async def delete_category(
     category_id: int, db: Annotated[AsyncSession, Depends(get_db)]
 ):
