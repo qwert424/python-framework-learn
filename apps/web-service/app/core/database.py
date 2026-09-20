@@ -1,5 +1,3 @@
-from collections.abc import AsyncIterator
-
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -40,16 +38,6 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
     return _session_factory
 
 
-async def get_db() -> AsyncIterator[AsyncSession]:
-    """FastAPI 依赖：每个请求一个独立 session，请求结束自动提交并关闭。
-
-    - 正常：yield 之后 commit，再随 async with 退出自动 close。
-    - 异常：rollback 后重新抛出，避免脏数据残留。
-    """
-    async with get_session_factory()() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
+async def get_db():
+    async with get_session_factory().begin() as session:
+        yield session
