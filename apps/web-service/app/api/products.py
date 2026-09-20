@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.exception import NotFoundException
 from app.schemas.product import (
     ProductBrief,
     ProductCreate,
@@ -44,7 +45,7 @@ async def list_products(
 async def get_product(product_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await ProductService(db).get_product(product_id)
     if result is None:
-        raise HTTPException(status_code=404, detail="商品不存在")
+        raise NotFoundException("商品不存在")
     return result
 
 
@@ -56,7 +57,7 @@ async def update_product(
 ):
     result = await ProductService(db).update_product(product_id, data)
     if result is None:
-        raise HTTPException(status_code=404, detail="商品不存在")
+        raise NotFoundException("商品不存在")
     return result
 
 
@@ -64,4 +65,4 @@ async def update_product(
 async def delete_product(product_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     deleted = await ProductService(db).delete_product(product_id)
     if not deleted:
-        raise HTTPException(status_code=404, detail="商品不存在")
+        raise NotFoundException("商品不存在")

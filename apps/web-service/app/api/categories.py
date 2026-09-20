@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.exception import NotFoundException
 from app.schemas.category import (
     CategoryCreate,
     CategoryDetailResponse,
@@ -35,7 +36,7 @@ async def list_categories(
 async def get_category(category_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await CategoryService(db).get_category(category_id)
     if result is None:
-        raise HTTPException(status_code=404, detail="分类不存在")
+        raise NotFoundException("分类不存在")
     return result
 
 
@@ -47,7 +48,7 @@ async def update_category(
 ):
     result = await CategoryService(db).update_category(category_id, data)
     if result is None:
-        raise HTTPException(status_code=404, detail="分类不存在")
+        raise NotFoundException("分类不存在")
     return result
 
 
@@ -57,4 +58,4 @@ async def delete_category(
 ):
     deleted = await CategoryService(db).delete_category(category_id)
     if not deleted:
-        raise HTTPException(status_code=404, detail="分类不存在")
+        raise NotFoundException("分类不存在")
