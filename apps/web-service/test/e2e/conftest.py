@@ -1,9 +1,7 @@
-"""pytest 测试脚手架：测试库生命周期 + 真实服务器 + 共享 fixtures。
+"""e2e 层共享 fixtures：启动真实 FastAPI 服务，用 httpx 打真实 HTTP。
 
-会话流程：
-    1. pytest_sessionstart：重建测试库 → 跑 Alembic 迁移建表 → 启动真实 FastAPI 服务
-    2. 每个测试：通过 httpx 打真实 HTTP 接口，autouse 的 cleanup_db 保证用例间数据隔离
-    3. pytest_sessionfinish：停服务器 → 删除测试库
+与 integration 层（进程内 ASGITransport）不同，e2e 真正起服务进程，
+验证完整的网络链路、中间件、异常处理在真实运行环境下的表现。
 """
 
 import os
@@ -12,18 +10,17 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-import psycopg2
-import pytest
-
-# ─── 必须在任何 app 导入之前设置环境变量，让配置指向测试库 ───
-os.environ.setdefault("DB_NAME", "learn_test_db")
+os.environ.setdefault("DB_NAME", "learn_e2e_test_db")
 
 from app.core.config import db_settings  # noqa: E402
 
+import psycopg2  # noqa: E402
+import pytest  # noqa: E402
+
 TEST_SERVER_PORT = "18000"
 
-WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-WEB_SERVICE_DIR = Path(__file__).resolve().parent.parent
+WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
+WEB_SERVICE_DIR = Path(__file__).resolve().parent.parent.parent
 
 _server_process: subprocess.Popen | None = None
 _log_file = None
@@ -31,7 +28,6 @@ _log_file = None
 
 @contextmanager
 def _create_cur():
-    """连接 postgres 默认库，用于创建/删除测试数据库（需 autocommit）。"""
     conn = psycopg2.connect(
         host=db_settings.host,
         port=db_settings.port,
@@ -48,8 +44,7 @@ def _create_cur():
         conn.close()
 
 
-def _start_server() -> None:
-    """启动真实 FastAPI 服务进程，并轮询等待就绪。"""
+def _start_server():
     global _server_process, _log_file
     tmp_dir = WORKSPACE_ROOT / "tmp"
     tmp_dir.mkdir(exist_ok=True)
@@ -84,7 +79,7 @@ def _start_server() -> None:
     raise RuntimeError("测试服务器启动超时")
 
 
-def _stop_server() -> None:
+def _stop_server():
     global _server_process, _log_file
     if _server_process is not None:
         _server_process.terminate()
@@ -95,8 +90,7 @@ def _stop_server() -> None:
         _log_file = None
 
 
-def pytest_sessionstart(session) -> None:
-    """会话开始：重建测试数据库并跑迁移，然后启动服务。"""
+def pytest_sessionstart(session):
     with _create_cur() as cur:
         cur.execute(
             "SELECT pg_terminate_backend(pg_stat_activity.pid) "
@@ -122,8 +116,7 @@ def pytest_sessionstart(session) -> None:
     _start_server()
 
 
-def pytest_sessionfinish(session, exitstatus) -> None:
-    """会话结束：停服务器并删除测试数据库。"""
+def pytest_sessionfinish(session, exitstatus):
     _stop_server()
 
     with _create_cur() as cur:
@@ -137,7 +130,7 @@ def pytest_sessionfinish(session, exitstatus) -> None:
 
 
 @pytest.fixture
-def base_url() -> str:
+def base_url():
     return f"http://localhost:{TEST_SERVER_PORT}"
 
 
@@ -150,8 +143,7 @@ async def async_client():
 
 
 @pytest.fixture(autouse=True)
-async def cleanup_db():
-    """每个测试结束后清空所有表，保证用例之间数据隔离。"""
+async def cleanup_db(async_client):
     yield
 
     from sqlalchemy import text

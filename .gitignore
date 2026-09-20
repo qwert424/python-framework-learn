@@ -23,3 +23,7 @@ Thumbs.db
 # temp
 /temp
 /tmp
+
+# test
+.coverage
+htmlcov/
