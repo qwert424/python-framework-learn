@@ -7,12 +7,11 @@ requires-python = ">=3.14"
 dependencies = []
 
 [tool.uv.workspace]
-members = [
-    "packages/*",
-    "apps/*"
-]
+members = ["packages/*", "apps/*"]
 
 [dependency-groups]
-dev = [
-    "debugpy>=1.8.22",
-]
+dev = ["debugpy>=1.8.22", "python-dotenv>=1.2.2"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = ["smoke: 标记为冒烟测试，验证核心流程是否正常"]

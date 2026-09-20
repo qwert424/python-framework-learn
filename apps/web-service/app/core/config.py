@@ -45,6 +45,18 @@ class DBSettings(_BaseSettingsWithEnv):
     password: str = ""
 
 
+class OSSSettings(_BaseSettingsWithEnv):
+    """对象存储（阿里云 OSS）配置，环境变量以 OSS_ 为前缀。"""
+
+    model_config = SettingsConfigDict(env_prefix="OSS_")
+
+    endpoint: str = ""
+    access_key_id: str = ""
+    access_key_secret: str = ""
+    bucket_name: str = ""
+
+
 common_settings = CommonSettings()
 web_settings = WebSettings()
 db_settings = DBSettings()
+oss_settings = OSSSettings()
