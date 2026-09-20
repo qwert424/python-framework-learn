@@ -1,4 +1,4 @@
-from duyi_utils.shared.mime import get_mime_type, IMAGE_MIME, DOC_MIME
+from common_utils.shared.mime import get_mime_type, IMAGE_MIME, DOC_MIME
 
 
 class TestGetMimeType:
@@ -15,7 +15,10 @@ class TestGetMimeType:
         assert get_mime_type(".pdf") == "application/pdf"
 
     def test_docx_type(self):
-        assert get_mime_type(".docx") == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        assert (
+            get_mime_type(".docx")
+            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
 
     def test_unknown_type(self):
         assert get_mime_type(".xyz") is None

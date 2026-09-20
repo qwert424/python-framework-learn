@@ -1,4 +1,4 @@
-from duyi_utils.shared.file_util import get_suffix
+from common_utils.shared.file_util import get_suffix
 
 
 class TestGetSuffix:

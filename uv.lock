@@ -5,7 +5,7 @@ requires-python = ">=3.14"
 [manifest]
 members = [
     "duyi-service",
-    "duyi-utils",
+    "common-utils",
     "web-service",
 ]
 
@@ -471,9 +471,9 @@ dev = [
 ]
 
 [[package]]
-name = "duyi-utils"
+name = "common-utils"
 version = "0.1.0"
-source = { editable = "packages/duyi-utils" }
+source = { editable = "packages/common-utils" }
 dependencies = [
     { name = "oss2" },
 ]

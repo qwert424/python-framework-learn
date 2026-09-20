@@ -38,19 +38,20 @@ db-downgrade:
 	uv run --package web-service alembic -c apps/web-service/alembic.ini downgrade $(version)
 
 test:
-	uv run pytest apps/web-service/test/unit/ apps/web-service/test/integration/ -q --cov=app --cov-report=term-missing --cov-fail-under=80
+	uv run pytest packages/common-utils/test/unit/ apps/web-service/test/unit/ apps/web-service/test/integration/ -q --cov=app --cov=common_utils --cov-report=term-missing --cov-fail-under=80
 
 test-unit:
-	uv run pytest apps/web-service/test/unit/ -q
+	uv run pytest packages/common-utils/test/unit/ apps/web-service/test/unit/ -q
 
 test-integration:
-	uv run pytest apps/web-service/test/integration/ -q
+	uv run pytest packages/common-utils/test/integration/ apps/web-service/test/integration/ -q
 
 test-e2e:
 	uv run pytest apps/web-service/test/e2e/ -q
 
 test-smoke:
-	uv run pytest apps/web-service/test/unit/ apps/web-service/test/integration/ apps/web-service/test/e2e/ -q -m smoke
+	uv run pytest apps/web-service/test/e2e/ -q -m smoke
+	uv run pytest packages/common-utils/test/unit/ apps/web-service/test/unit/ apps/web-service/test/integration/ -q -m smoke
 
 coverage:
 	uv run --package web-service coverage run --source=app -m pytest apps/web-service/test/unit/ apps/web-service/test/integration/ -q

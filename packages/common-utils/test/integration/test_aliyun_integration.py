@@ -16,10 +16,13 @@ from datetime import datetime, timezone
 import pytest
 from dotenv import load_dotenv
 
-from duyi_utils.upload.aliyun import AliyunOSSConfig, AliyunOSSUploader
+from common_utils.upload.aliyun import AliyunOSSConfig, AliyunOSSUploader
 
-
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".env.test"))
+load_dotenv(
+    dotenv_path=os.path.join(
+        os.path.dirname(__file__), "..", "..", "..", "..", ".env.test"
+    )
+)
 
 
 @pytest.fixture(scope="module")
@@ -41,7 +44,14 @@ def uploader(config):
 class TestGenerateUploadCredentialsIntegration:
     def test_returns_required_fields(self, uploader):
         result = uploader.generate_upload_credentials("photo.png", 1024)
-        for field in ("host", "access_id", "policy", "signature", "key", "content_type"):
+        for field in (
+            "host",
+            "access_id",
+            "policy",
+            "signature",
+            "key",
+            "content_type",
+        ):
             assert field in result
             assert result[field]
 
@@ -95,7 +105,9 @@ class TestGenerateUploadCredentialsIntegration:
         policy_dict = json.loads(policy_json)
 
         expire_str = policy_dict["expiration"]
-        expire_time = datetime.strptime(expire_str, "%Y-%m-%dT%H:%M:%S.000Z").replace(tzinfo=timezone.utc)
+        expire_time = datetime.strptime(expire_str, "%Y-%m-%dT%H:%M:%S.000Z").replace(
+            tzinfo=timezone.utc
+        )
         now = datetime.now(timezone.utc)
         delta = expire_time - now
         assert 3500 < delta.total_seconds() < 3700  # 约 1 小时
@@ -180,7 +192,9 @@ class TestUploadAndDelete:
 
         cred = uploader.generate_upload_credentials("test.png", 1024)
         wrong_key = cred["key"].replace("uploads/", "uploads_fake/")
-        body, boundary = _build_multipart_body(cred, "test.png", "fake-image-content", key=wrong_key)
+        body, boundary = _build_multipart_body(
+            cred, "test.png", "fake-image-content", key=wrong_key
+        )
 
         with pytest.raises(urllib.error.HTTPError) as exc_info:
             _do_upload(cred, body, boundary)

@@ -11,9 +11,9 @@ from typing import Callable
 
 import oss2
 
-from duyi_utils.shared.file_util import get_suffix
-from duyi_utils.shared.mime import get_mime_type
-from duyi_utils.upload.dir_strategy import date_uuid_strategy
+from common_utils.shared.file_util import get_suffix
+from common_utils.shared.mime import get_mime_type
+from common_utils.upload.dir_strategy import date_uuid_strategy
 
 
 @dataclass
