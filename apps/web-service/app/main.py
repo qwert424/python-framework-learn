@@ -9,6 +9,10 @@ from app.core.openapi import setup_openapi
 from app.exception.handler import register_exception_handlers
 from app.core.database import get_session_factory
 from app.service.setting_service import SettingService
+from app.core.logger.log_record import setup_logging
+
+# 初始化日志系统
+setup_logging()
 
 
 @asynccontextmanager

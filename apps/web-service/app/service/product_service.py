@@ -12,9 +12,16 @@ from app.schemas.product import (
     ProductUpdate,
 )
 from app.service.base import BaseService, PageResult
+from app.core.logger import service_logger
 
 
 class ProductService(BaseService):
+
+    @service_logger(
+        action="创建商品",
+        entity="Product",
+        id_extractor=lambda args, kwargs, result: str(result.id) if result else "",
+    )
     async def create_product(self, data: ProductCreate) -> ProductResponse:
         """创建商品，同时建立与分类的关联"""
         product = Product(
@@ -134,6 +141,13 @@ class ProductService(BaseService):
         # 重新加载，确保返回的 DTO 包含最新的关联数据
         return await self.get_product(product_id)
 
+    @service_logger(
+        action="删除商品",
+        entity="Product",
+        id_extractor=lambda args, kwargs, result: str(
+            kwargs.get("product_id", args[0] if args else "")
+        ),
+    )
     async def delete_product(self, product_id: int) -> bool:
         """删除商品，关联的SKU会级联删除"""
         product = await self._get_product_orm(product_id)

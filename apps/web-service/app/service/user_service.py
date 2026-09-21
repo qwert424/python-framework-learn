@@ -12,9 +12,16 @@ from app.schemas.user import UserLogin, UserRegister, TokenResponse, UserRespons
 from app.service.base import BaseService
 from common_utils.auth.jwt_util import create_token
 from common_utils.auth.password import hash_password, verify_password
+from app.core.logger import BusinessLog, service_logger
 
 
 class UserService(BaseService):
+
+    @service_logger(
+        action="用户注册",
+        entity="User",
+        id_extractor=lambda args, kwargs, result: str(result.id),
+    )
     async def register(self, data: UserRegister) -> UserResponse:
         existing = await self.db.scalar(
             select(User).where(User.username == data.username)

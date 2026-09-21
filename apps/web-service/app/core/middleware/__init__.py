@@ -3,9 +3,14 @@ from typing import Any, cast
 
 from fastapi import FastAPI
 
-from app.core.middleware import cors, process_time, response
+from app.core.middleware import cors, process_time, response, logging
 
-MIDDLEWARES = [process_time.MIDDLEWARE, cors.MIDDLEWARE, response.MIDDLEWARE]
+MIDDLEWARES = [
+    process_time.MIDDLEWARE,
+    logging.MIDDLEWARE,
+    cors.MIDDLEWARE,
+    response.MIDDLEWARE,
+]
 
 
 def register_middleware(app: FastAPI) -> None:

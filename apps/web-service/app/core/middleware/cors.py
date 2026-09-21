@@ -11,7 +11,7 @@ def _split_csv(value: str) -> list[str]:
 origins = _split_csv(web_settings.cors_origins)
 expose_headers = _split_csv(web_settings.cors_expose_headers)
 
-MIDDLEWARE = (
+MIDDLEWARE: tuple[object, dict[str, object]] = (
     CORSMiddleware,
     {
         "allow_origins": origins,

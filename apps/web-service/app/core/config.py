@@ -57,7 +57,16 @@ class OSSSettings(_BaseSettingsWithEnv):
     bucket_name: str = ""
 
 
+class LogSettings(_BaseSettingsWithEnv):
+    """日志配置，环境变量以 LOG_ 为前缀。"""
+
+    model_config = SettingsConfigDict(env_prefix="LOG_")
+    level: str = "INFO"  # DEBUG / INFO / WARNING / ERROR
+    slow_query_threshold: float = 200  # 毫秒
+
+
 common_settings = CommonSettings()
 web_settings = WebSettings()
 db_settings = DBSettings()
 oss_settings = OSSSettings()
+log_settings = LogSettings()
