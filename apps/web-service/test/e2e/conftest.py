@@ -57,9 +57,13 @@ os.environ["DB_NAME"] = "learn_e2e_test_db"
 from app.core.config import db_settings  # noqa: E402
 
 TEST_SERVER_PORT = "18000"
+MOCK_AI_PORT = "18001"
 
 _server_process: subprocess.Popen | None = None
 _log_file_path = PROJECT_ROOT / "tmp" / "test_server.log"
+
+_mock_ai_process: subprocess.Popen | None = None
+_mock_ai_log_file_path = PROJECT_ROOT / "tmp" / "mock_ai_server.log"
 
 
 # ==========================
@@ -192,6 +196,77 @@ def _stop_server():
     _kill_process_on_port(int(TEST_SERVER_PORT))
 
 
+def _start_mock_ai_server():
+    global _mock_ai_process
+
+    # 启动前清理端口
+    _kill_process_on_port(int(MOCK_AI_PORT))
+
+    tmp_dir = PROJECT_ROOT / "tmp"
+    tmp_dir.mkdir(exist_ok=True)
+
+    # 清空日志
+    with open(_mock_ai_log_file_path, "w") as f:
+        f.write("")
+
+    print(f"[START] Starting mock AI server on port {MOCK_AI_PORT}...")
+
+    _mock_ai_process = subprocess.Popen(
+        [
+            "uv",
+            "run",
+            "--package",
+            "web-service",
+            "python",
+            str(CURRENT_FILE.parent / "mock_ai_server.py"),
+            MOCK_AI_PORT,
+        ],
+        cwd=str(PROJECT_ROOT),
+        stdout=open(_mock_ai_log_file_path, "a"),
+        stderr=subprocess.STDOUT,
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
+    )
+
+    # 等待 mock AI 服务就绪
+    for i in range(60):
+        if _mock_ai_process.poll() is not None:
+            with open(_mock_ai_log_file_path, "r") as f:
+                raise RuntimeError(f"Mock AI server crashed. Logs:\n{f.read()}")
+
+        try:
+            resp = httpx.get(f"http://localhost:{MOCK_AI_PORT}/health", timeout=2)
+            if resp.status_code == 200:
+                print("[OK] Mock AI server is ready.")
+                return
+        except httpx.ConnectError:
+            pass
+
+        time.sleep(0.5)
+
+    _stop_mock_ai_server()
+    raise RuntimeError("Mock AI server startup timeout. Check tmp/mock_ai_server.log")
+
+
+def _stop_mock_ai_server():
+    global _mock_ai_process
+    if _mock_ai_process:
+        try:
+            if os.name == "nt":
+                subprocess.run(
+                    ["taskkill", "/F", "/T", "/PID", str(_mock_ai_process.pid)],
+                    capture_output=True,
+                )
+            else:
+                os.killpg(os.getpgid(_mock_ai_process.pid), signal.SIGTERM)
+            _mock_ai_process.wait(timeout=5)
+        except Exception:
+            pass
+        finally:
+            _mock_ai_process = None
+    # 兑底：按端口再清理一次
+    _kill_process_on_port(int(MOCK_AI_PORT))
+
+
 # ==========================
 # 3. Pytest Hooks
 # ==========================
@@ -225,9 +300,12 @@ def pytest_sessionstart(session):
     command.upgrade(alembic_cfg, "head")
     print("迁移完成，启动测试服务")
     _start_server()
+    _start_mock_ai_server()
 
 
 def pytest_sessionfinish(session, exitstatus):
+    print("停止 Mock AI 服务...")
+    _stop_mock_ai_server()
     print("停止测试服务...")
     _stop_server()
     # 3. 所有测试全部跑完后，最后一步才删除测试库
@@ -250,6 +328,11 @@ def pytest_sessionfinish(session, exitstatus):
 @pytest.fixture
 def base_url():
     return f"http://localhost:{TEST_SERVER_PORT}"
+
+
+@pytest.fixture(scope="session")
+def mock_ai_base_url():
+    return f"http://localhost:{MOCK_AI_PORT}"
 
 
 @pytest.fixture

@@ -16,6 +16,7 @@ MIDDLEWARES = [
 def register_middleware(app: FastAPI) -> None:
     for callable_obj, kwargs in MIDDLEWARES:
         if inspect.isclass(callable_obj):
-            app.add_middleware(cast(Any, callable_obj), **kwargs)
+            app.add_middleware(cast(Any, callable_obj), **kwargs)  # type: ignore[arg-type]
+
         else:
-            app.middleware("http")(callable_obj, **kwargs)
+            app.middleware("http")(callable_obj, **kwargs)  # type: ignore[type-var]
