@@ -10,6 +10,10 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent.parent.parent.parent / ".env.test")
+
 os.environ["DB_NAME"] = "learn_e2e_test_db"
 
 from app.core.config import db_settings  # noqa: E402
@@ -142,6 +146,9 @@ async def async_client():
         yield client
 
 
+_SKIP_CLEANUP_TABLES = {"settinggroup", "setting"}
+
+
 @pytest.fixture(autouse=True)
 async def cleanup_db(async_client):
     yield
@@ -160,6 +167,8 @@ async def cleanup_db(async_client):
 
     async with engine.begin() as conn:
         for table in reversed(Base.metadata.sorted_tables):
+            if table.name in _SKIP_CLEANUP_TABLES:
+                continue
             await conn.execute(
                 text(f'TRUNCATE TABLE "{table.name}" RESTART IDENTITY CASCADE')
             )

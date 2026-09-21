@@ -8,6 +8,10 @@ import os
 from contextlib import contextmanager
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent.parent.parent.parent / ".env.test")
+
 os.environ["DB_NAME"] = "learn_integration_test_db"
 
 from app.core.config import db_settings  # noqa: E402

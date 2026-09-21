@@ -1,4 +1,4 @@
-from sqlalchemy import exc as sa_exc, select
+from sqlalchemy import delete, exc as sa_exc, select, update
 
 from app.exception.database import DatabaseException
 from app.model.product import Product
@@ -50,47 +50,43 @@ class SkuService(BaseService):
         return [SkuResponse.model_validate(s) for s in result.scalars().all()]
 
     async def update_sku(self, sku_id: int, data: SkuUpdate) -> SkuResponse | None:
-        """更新SKU信息，仅更新传入的字段"""
-        sku = await self._get_sku_orm(sku_id)
-        if sku is None:
-            return None
+        """更新SKU信息，仅更新传入的字段。
 
+        用 UPDATE ... RETURNING 单条语句完成更新并拿回最新行，
+        避免「先查后改再刷」的多次往返，缩短事务。
+        """
         update_data = data.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(sku, key, value)
+        if not update_data:
+            return await self.get_sku(sku_id)
 
+        stmt = update(Sku).where(Sku.id == sku_id).values(**update_data).returning(Sku)
         try:
-            await self.db.flush()
+            result = await self.db.execute(stmt)
+            sku = result.scalar_one_or_none()
         except sa_exc.IntegrityError as e:
             raise DatabaseException(
                 message="SKU编码重复",
                 detail=str(e),
                 original_exception=e,
             ) from e
-        await self.db.refresh(sku)
+
+        if sku is None:
+            return None
         return SkuResponse.model_validate(sku)
 
     async def delete_sku(self, sku_id: int) -> bool:
-        """删除SKU"""
-        sku = await self._get_sku_orm(sku_id)
-        if sku is None:
-            return False
-        await self.db.delete(sku)
-        await self.db.flush()
-        return True
+        """删除SKU，单条 DELETE 完成，无需先查询。"""
+        result = await self.db.execute(
+            delete(Sku).where(Sku.id == sku_id).returning(Sku.id)
+        )
+        return result.scalar_one_or_none() is not None
 
     async def update_stock(self, sku_id: int, quantity: int) -> SkuResponse | None:
-        """设置SKU库存为指定数量"""
-        sku = await self._get_sku_orm(sku_id)
+        """设置SKU库存为指定数量，单条 UPDATE 完成。"""
+        result = await self.db.execute(
+            update(Sku).where(Sku.id == sku_id).values(stock=quantity).returning(Sku)
+        )
+        sku = result.scalar_one_or_none()
         if sku is None:
             return None
-        sku.stock = quantity
-        await self.db.flush()
-        await self.db.refresh(sku)
         return SkuResponse.model_validate(sku)
-
-    async def _get_sku_orm(self, sku_id: int) -> Sku | None:
-        """内部方法：获取 ORM 对象，用于更新/删除"""
-        stmt = select(Sku).where(Sku.id == sku_id)
-        result = await self.db.execute(stmt)
-        return result.scalar_one_or_none()
