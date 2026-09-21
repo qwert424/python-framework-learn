@@ -7,9 +7,9 @@ from app.core.middleware import cors, process_time, response, logging
 
 MIDDLEWARES = [
     process_time.MIDDLEWARE,
-    logging.MIDDLEWARE,
     cors.MIDDLEWARE,
     response.MIDDLEWARE,
+    logging.MIDDLEWARE,
 ]
 
 
