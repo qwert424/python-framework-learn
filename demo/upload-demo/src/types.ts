@@ -21,7 +21,6 @@ export interface SettingGroupResponse {
 }
 
 export interface SettingUpdateItem {
-  group_key: string
   key: string
   value: string
 }

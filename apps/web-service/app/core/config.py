@@ -2,8 +2,8 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# 应用根目录：apps/web-service（config.py 位于 app/core/ 下，向上两级）
-BASE_DIR = Path(__file__).resolve().parents[2]
+# 项目根目录：empty-project（config.py 位于 apps/web-service/app/core/ 下，向上四级）
+BASE_DIR = Path(__file__).resolve().parents[4]
 ENV_FILE = BASE_DIR / ".env"
 
 
@@ -31,6 +31,7 @@ class WebSettings(_BaseSettingsWithEnv):
     app_name: str = "Web Service API"
     cors_origins: str = ""  # 实际读取 WEB_CORS_ORIGINS，多个来源用逗号分隔
     cors_expose_headers: str = ""  # 实际读取 WEB_CORS_EXPOSE_HEADERS
+    jwt_secret_key: str = ""
 
 
 class DBSettings(_BaseSettingsWithEnv):

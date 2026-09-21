@@ -5,42 +5,36 @@ from httpx import AsyncClient
 
 UPLOAD_SIGN_URL = "/api/upload/sign"
 SETTINGS_URL = "/api/settings"
+REGISTER_URL = "/api/auth/register"
+LOGIN_URL = "/api/auth/login"
 
 
 def _oss_settings_payload() -> list[dict]:
     return [
+        {"key": "oss_endpoint", "value": os.environ["OSS_ENDPOINT"]},
+        {"key": "oss_access_key_id", "value": os.environ["OSS_ACCESS_KEY_ID"]},
         {
-            "group_key": "aliyun_oss",
-            "key": "oss_endpoint",
-            "value": os.environ["OSS_ENDPOINT"],
-        },
-        {
-            "group_key": "aliyun_oss",
-            "key": "oss_access_key_id",
-            "value": os.environ["OSS_ACCESS_KEY_ID"],
-        },
-        {
-            "group_key": "aliyun_oss",
             "key": "oss_access_key_secret",
             "value": os.environ["OSS_ACCESS_KEY_SECRET"],
         },
+        {"key": "oss_bucket_name", "value": os.environ["OSS_BUCKET_NAME"]},
         {
-            "group_key": "aliyun_oss",
-            "key": "oss_bucket_name",
-            "value": os.environ["OSS_BUCKET_NAME"],
-        },
-        {
-            "group_key": "aliyun_oss",
             "key": "oss_bucket_domain",
             "value": os.environ.get("OSS_BUCKET_DOMAIN", ""),
         },
     ]
 
 
+async def _setup_oss_settings(client: AsyncClient, auth_headers: dict) -> None:
+    await client.put(SETTINGS_URL, headers=auth_headers, json=_oss_settings_payload())
+
+
 class TestUploadSign:
     @pytest.mark.smoke
-    async def test_post_returns_credentials(self, async_client: AsyncClient):
-        await async_client.put(SETTINGS_URL, json=_oss_settings_payload())
+    async def test_post_returns_credentials(
+        self, async_client: AsyncClient, auth_headers: dict
+    ):
+        await _setup_oss_settings(async_client, auth_headers)
 
         response = await async_client.post(
             UPLOAD_SIGN_URL,
@@ -58,8 +52,10 @@ class TestUploadSign:
         assert data["content_type"] == "image/png"
         assert "bucket_domain" in data
 
-    async def test_non_image_rejected(self, async_client: AsyncClient):
-        await async_client.put(SETTINGS_URL, json=_oss_settings_payload())
+    async def test_non_image_rejected(
+        self, async_client: AsyncClient, auth_headers: dict
+    ):
+        await _setup_oss_settings(async_client, auth_headers)
 
         response = await async_client.post(
             UPLOAD_SIGN_URL,

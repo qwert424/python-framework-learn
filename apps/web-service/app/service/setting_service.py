@@ -31,6 +31,19 @@ class SettingGroupDef:
 
 SETTINGS_DTO: list[SettingGroupDef] = [
     SettingGroupDef(
+        key="jwt",
+        display_name="JWT配置",
+        description="JWT令牌相关配置",
+        settings=[
+            SettingDef(
+                key="jwt_expire_minutes",
+                value="120",
+                display_name="JWT过期时间",
+                description="JWT令牌过期时间，单位为分钟，默认 120 分钟（2小时）",
+            ),
+        ],
+    ),
+    SettingGroupDef(
         key="aliyun_oss",
         display_name="阿里云OSS上传设置",
         description="阿里云OSS对象存储上传配置",
@@ -170,32 +183,22 @@ class SettingService(BaseService):
             .order_by(SettingGroup.id)
         )
         groups = result.unique().scalars().all()
+        for g in groups:
+            g.settings.sort(key=lambda s: s.id)
         return [SettingGroupResponse.model_validate(g) for g in groups]
 
     async def update_settings(
         self, data: list[SettingUpdateItem]
     ) -> list[SettingItemResponse]:
-        group_keys = {item.group_key for item in data}
-        if not group_keys:
-            return []
+        update_map = {item.key: item.value for item in data}
 
         result = await self.db.execute(
-            select(SettingGroup)
-            .options(selectinload(SettingGroup.settings))
-            .where(SettingGroup.key.in_(group_keys))
+            select(Setting).where(Setting.key.in_(update_map.keys()))
         )
-        groups = {g.key: g for g in result.unique().scalars().all()}
+        settings = result.unique().scalars().all()
 
-        updated: list[Setting] = []
-        for item in data:
-            group = groups.get(item.group_key)
-            if group is None:
-                continue
-            settings_by_key = {s.key: s for s in group.settings}
-            setting = settings_by_key.get(item.key)
-            if setting is not None:
-                setting.value = item.value
-                updated.append(setting)
+        for setting in settings:
+            setting.value = update_map[setting.key]
 
         await self.db.flush()
-        return [SettingItemResponse.model_validate(s) for s in updated]
+        return [SettingItemResponse.model_validate(s) for s in settings]

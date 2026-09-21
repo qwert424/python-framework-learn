@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import get_current_user
 from app.core.database import get_db
 from app.schemas.setting import (
     SettingGroupResponse,
@@ -11,7 +12,11 @@ from app.schemas.setting import (
 )
 from app.service.setting_service import SettingService
 
-router = APIRouter(prefix="/api/settings", tags=["系统设置"])
+router = APIRouter(
+    prefix="/api/settings",
+    tags=["系统设置"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("", response_model=list[SettingGroupResponse])

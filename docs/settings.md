@@ -54,7 +54,7 @@ GET /api/settings
 
 返回所有分组及其配置项列表。
 
-### 更新设置（按分组）
+### 更新设置（按 key）
 
 ```http
 PUT /api/settings
@@ -62,12 +62,10 @@ Content-Type: application/json
 
 [
   {
-    "group_key": "aliyun_oss",
     "key": "oss_endpoint",
     "value": "oss-cn-hangzhou.aliyuncs.com"
   },
   {
-    "group_key": "aliyun_oss",
     "key": "oss_bucket_name",
     "value": "xiaofang-file-upload-test"
   }
@@ -76,13 +74,12 @@ Content-Type: application/json
 
 请求体为数组，每个元素包含：
 
-| 字段 | 说明 |
-|------|------|
-| `group_key` | 目标分组 key（如 `aliyun_oss`） |
-| `key` | 配置项 key，**组内唯一** |
-| `value` | 新值 |
+| 字段    | 说明                     |
+| ------- | ------------------------ |
+| `key`   | 配置项 key，**全局唯一** |
+| `value` | 新值                     |
 
-更新按 `(group_key, key)` 精确匹配：不存在的分组或 key 会被忽略，返回实际更新成功的项列表。
+更新按 `key` 精确匹配：不存在的 key 会被忽略，返回实际更新成功的项列表。
 
 ## 部署注意事项 ⚠️
 

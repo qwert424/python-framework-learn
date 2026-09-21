@@ -53,6 +53,9 @@ test-smoke:
 	uv run pytest apps/web-service/test/e2e/ -q -m smoke
 	uv run pytest packages/common-utils/test/unit/ apps/web-service/test/unit/ apps/web-service/test/integration/ -q -m smoke
 
+test-changed:
+	uv run python scripts/run_changed_tests.py
+	
 coverage:
 	uv run --package web-service coverage run --source=app -m pytest apps/web-service/test/unit/ apps/web-service/test/integration/ -q
 	uv run --package web-service coverage report

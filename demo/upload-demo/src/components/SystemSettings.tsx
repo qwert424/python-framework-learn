@@ -49,7 +49,6 @@ export default function SystemSettings() {
       for (const setting of group.settings) {
         if (setting.key in values) {
           items.push({
-            group_key: group.key,
             key: setting.key,
             value: String(values[setting.key] ?? ''),
           })

@@ -6,6 +6,8 @@ from app.model.product import Product
 from app.model.setting import Setting
 from app.model.setting_group import SettingGroup
 from app.model.sku import Sku
+from app.model import user  # noqa
+from app.model.user import User
 
 __all__ = [
     "Base",
@@ -16,4 +18,5 @@ __all__ = [
     "Setting",
     "SettingGroup",
     "Sku",
+    "user",
 ]

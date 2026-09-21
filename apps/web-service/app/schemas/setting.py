@@ -2,7 +2,6 @@ from pydantic import BaseModel, Field
 
 
 class SettingUpdateItem(BaseModel):
-    group_key: str = Field(min_length=1, description="设置所属分组 key")
     key: str = Field(min_length=1, description="设置键")
     value: str = Field(description="设置值")
 

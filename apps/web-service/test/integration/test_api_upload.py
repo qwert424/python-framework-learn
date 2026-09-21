@@ -12,26 +12,20 @@ UPLOAD_SIGN_URL = "/api/upload/sign"
 
 def _oss_settings_from_env() -> list[SettingUpdateItem]:
     return [
+        SettingUpdateItem(key="oss_endpoint", value=os.environ["OSS_ENDPOINT"]),
         SettingUpdateItem(
-            group_key="aliyun_oss", key="oss_endpoint", value=os.environ["OSS_ENDPOINT"]
-        ),
-        SettingUpdateItem(
-            group_key="aliyun_oss",
             key="oss_access_key_id",
             value=os.environ["OSS_ACCESS_KEY_ID"],
         ),
         SettingUpdateItem(
-            group_key="aliyun_oss",
             key="oss_access_key_secret",
             value=os.environ["OSS_ACCESS_KEY_SECRET"],
         ),
         SettingUpdateItem(
-            group_key="aliyun_oss",
             key="oss_bucket_name",
             value=os.environ["OSS_BUCKET_NAME"],
         ),
         SettingUpdateItem(
-            group_key="aliyun_oss",
             key="oss_bucket_domain",
             value=os.environ.get("OSS_BUCKET_DOMAIN", ""),
         ),

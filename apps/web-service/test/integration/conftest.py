@@ -1,9 +1,4 @@
-"""integration 层共享 fixtures：进程内跑 app，用依赖覆盖连接测试库。
-
-不启动真实服务器，用 ASGITransport 直接调用 app，通过 dependency_overrides
-把 get_db 替换为测试 session，速度快、无端口冲突。
-"""
-
+import asyncio
 import os
 from contextlib import contextmanager
 from pathlib import Path
@@ -11,26 +6,20 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parent.parent.parent.parent.parent / ".env.test")
-
 os.environ["DB_NAME"] = "learn_integration_test_db"
 
-from app.core.config import db_settings  # noqa: E402
+from app.core.config import DBSettings
 
-import psycopg2  # noqa: E402
-import pytest  # noqa: E402
-from httpx import ASGITransport, AsyncClient  # noqa: E402
-from sqlalchemy import text  # noqa: E402
-from sqlalchemy.ext.asyncio import (  # noqa: E402
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
-from sqlalchemy.pool import NullPool  # noqa: E402
+db_settings = DBSettings()
 
-DB_URL = (
-    f"postgresql+asyncpg://{db_settings.user}:{db_settings.password}"
-    f"@{db_settings.host}:{db_settings.port}/{db_settings.name}"
-)
+import pytest
+import psycopg2
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
+
+DB_URL = f"postgresql+asyncpg://{db_settings.user}:{db_settings.password}@{db_settings.host}:{db_settings.port}/{db_settings.name}"
 
 
 @contextmanager
@@ -54,13 +43,13 @@ def _create_cur():
 def pytest_sessionstart(session):
     with _create_cur() as cur:
         cur.execute(
-            "SELECT pg_terminate_backend(pg_stat_activity.pid) "
-            "FROM pg_stat_activity "
+            f"SELECT pg_terminate_backend(pg_stat_activity.pid) "
+            f"FROM pg_stat_activity "
             f"WHERE pg_stat_activity.datname = '{db_settings.name}' "
-            "AND pid <> pg_backend_pid()"
+            f"AND pid <> pg_backend_pid()"
         )
-        cur.execute(f'DROP DATABASE IF EXISTS "{db_settings.name}"')
-        cur.execute(f'CREATE DATABASE "{db_settings.name}"')
+        cur.execute(f"DROP DATABASE IF EXISTS {db_settings.name}")
+        cur.execute(f"CREATE DATABASE {db_settings.name}")
 
     from alembic import command
     from alembic.config import Config
@@ -70,8 +59,7 @@ def pytest_sessionstart(session):
     alembic_cfg.set_main_option("script_location", str(web_service_dir / "migrations"))
     alembic_cfg.set_main_option(
         "sqlalchemy.url",
-        f"postgresql://{db_settings.user}:{db_settings.password}"
-        f"@{db_settings.host}:{db_settings.port}/{db_settings.name}",
+        f"postgresql://{db_settings.user}:{db_settings.password}@{db_settings.host}:{db_settings.port}/{db_settings.name}",
     )
     command.upgrade(alembic_cfg, "head")
 
@@ -79,12 +67,20 @@ def pytest_sessionstart(session):
 def pytest_sessionfinish(session, exitstatus):
     with _create_cur() as cur:
         cur.execute(
-            "SELECT pg_terminate_backend(pg_stat_activity.pid) "
-            "FROM pg_stat_activity "
+            f"SELECT pg_terminate_backend(pg_stat_activity.pid) "
+            f"FROM pg_stat_activity "
             f"WHERE pg_stat_activity.datname = '{db_settings.name}' "
-            "AND pid <> pg_backend_pid()"
+            f"AND pid <> pg_backend_pid()"
         )
-        cur.execute(f'DROP DATABASE IF EXISTS "{db_settings.name}"')
+        cur.execute(f"DROP DATABASE IF EXISTS {db_settings.name}")
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    yield loop
+    loop.close()
 
 
 @pytest.fixture
@@ -106,6 +102,22 @@ async def db_session():
         yield session
 
     await engine.dispose()
+
+
+@pytest.fixture
+async def auth_token(db_session):
+    from app.schemas.user import UserLogin, UserRegister
+    from app.service.user_service import UserService
+
+    svc = UserService(db_session)
+    await svc.register(UserRegister(username="testuser", password="test123456"))
+    result = await svc.login(UserLogin(username="testuser", password="test123456"))
+    return result.access_token
+
+
+@pytest.fixture
+def auth_headers(auth_token):
+    return {"Authorization": f"Bearer {auth_token}"}
 
 
 @pytest.fixture

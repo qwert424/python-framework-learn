@@ -11,34 +11,26 @@ from app.schemas.setting import (
 class TestSettingUpdateItem:
     @pytest.mark.smoke
     def test_valid_item(self):
-        item = SettingUpdateItem(
-            group_key="aliyun_oss", key="oss_endpoint", value="https://example.com"
-        )
-        assert item.group_key == "aliyun_oss"
+        item = SettingUpdateItem(key="oss_endpoint", value="https://example.com")
         assert item.key == "oss_endpoint"
         assert item.value == "https://example.com"
 
     def test_empty_value_allowed(self):
-        item = SettingUpdateItem(group_key="aliyun_oss", key="oss_endpoint", value="")
+        item = SettingUpdateItem(key="oss_endpoint", value="")
         assert item.value == ""
 
     def test_empty_key_fails(self):
         with pytest.raises(ValidationError) as exc:
-            SettingUpdateItem(group_key="aliyun_oss", key="", value="x")  # pyright: ignore[reportCallIssue]
-        assert "String should have at least 1 character" in str(exc.value)
-
-    def test_empty_group_key_fails(self):
-        with pytest.raises(ValidationError) as exc:
-            SettingUpdateItem(group_key="", key="x", value="x")  # pyright: ignore[reportCallIssue]
+            SettingUpdateItem(key="", value="x")  # pyright: ignore[reportCallIssue]
         assert "String should have at least 1 character" in str(exc.value)
 
     def test_missing_key_fails(self):
         with pytest.raises(ValidationError):
-            SettingUpdateItem(group_key="aliyun_oss", value="x")  # pyright: ignore[reportCallIssue]
+            SettingUpdateItem(value="x")  # pyright: ignore[reportCallIssue]
 
     def test_missing_value_fails(self):
         with pytest.raises(ValidationError):
-            SettingUpdateItem(group_key="aliyun_oss", key="x")  # pyright: ignore[reportCallIssue]
+            SettingUpdateItem(key="x")  # pyright: ignore[reportCallIssue]
 
 
 class TestSettingItemResponse:
