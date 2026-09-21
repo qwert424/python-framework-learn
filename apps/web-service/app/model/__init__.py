@@ -3,6 +3,8 @@
 from app.model.base import Base, IDMixin, TimestampMixin
 from app.model.category import Category
 from app.model.product import Product
+from app.model.setting import Setting
+from app.model.setting_group import SettingGroup
 from app.model.sku import Sku
 
 __all__ = [
@@ -11,5 +13,7 @@ __all__ = [
     "TimestampMixin",
     "Category",
     "Product",
+    "Setting",
+    "SettingGroup",
     "Sku",
 ]
