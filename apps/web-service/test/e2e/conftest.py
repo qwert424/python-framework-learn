@@ -10,7 +10,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-os.environ.setdefault("DB_NAME", "learn_e2e_test_db")
+os.environ["DB_NAME"] = "learn_e2e_test_db"
 
 from app.core.config import db_settings  # noqa: E402
 

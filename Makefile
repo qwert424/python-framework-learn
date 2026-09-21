@@ -29,7 +29,7 @@ db-reset:
 	docker compose exec -T db psql -U admin -d learn_db -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
 
 db-migrate:
-	uv run --package web-service alembic -c apps/web-service/alembic.ini revision --autogenerate -m "$(message)"
+	uv run --package web-service alembic -c apps/web-service/alembic.ini revision --autogenerate -m "$(or $(message),auto migration)"
 
 db-upgrade:
 	uv run --package web-service alembic -c apps/web-service/alembic.ini upgrade head
