@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class SettingUpdateItem(BaseModel):
@@ -12,7 +12,7 @@ class SettingItemResponse(BaseModel):
     display_name: str
     description: str
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SettingGroupResponse(BaseModel):
@@ -21,4 +21,4 @@ class SettingGroupResponse(BaseModel):
     description: str
     settings: list[SettingItemResponse] = []
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

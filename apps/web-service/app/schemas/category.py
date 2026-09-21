@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from app.schemas.product import ProductBrief
 
@@ -20,7 +20,7 @@ class CategoryResponse(BaseModel):
     name: str
     description: str
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CategoryDetailResponse(BaseModel):
@@ -31,4 +31,4 @@ class CategoryDetailResponse(BaseModel):
     description: str
     products: list[ProductBrief] = []
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

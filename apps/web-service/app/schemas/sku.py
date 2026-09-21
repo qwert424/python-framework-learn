@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class SkuCreate(BaseModel):
@@ -13,7 +13,9 @@ class SkuCreate(BaseModel):
 
 
 class SkuUpdate(BaseModel):
-    sku_code: str | None = Field(default=None, min_length=1, max_length=50, description="SKU编码")
+    sku_code: str | None = Field(
+        default=None, min_length=1, max_length=50, description="SKU编码"
+    )
     price: Decimal | None = Field(default=None, ge=0, description="价格")
     stock: int | None = Field(default=None, ge=0, description="库存")
     attrs: dict[str, Any] | None = Field(default=None, description="规格属性")
@@ -29,4 +31,4 @@ class SkuResponse(BaseModel):
     attrs: dict[str, Any]
     image_url: str
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

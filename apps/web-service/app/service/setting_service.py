@@ -80,6 +80,31 @@ SETTINGS_DTO: list[SettingGroupDef] = [
             ),
         ],
     ),
+    SettingGroupDef(
+        key="ai",
+        display_name="AI配置",
+        description="AI服务相关配置",
+        settings=[
+            SettingDef(
+                key="ai_api_key",
+                value="",
+                display_name="AI API Key",
+                description="AI服务的API密钥",
+            ),
+            SettingDef(
+                key="ai_base_url",
+                value="https://api.deepseek.com",
+                display_name="AI Base URL",
+                description="AI服务的接口地址",
+            ),
+            SettingDef(
+                key="ai_model",
+                value="deepseek-v4-flash",
+                display_name="AI Model",
+                description="AI模型名称",
+            ),
+        ],
+    ),
 ]
 
 

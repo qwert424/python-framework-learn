@@ -3,7 +3,12 @@ name = "common-utils"
 version = "0.1.0"
 description = "公共工具包"
 requires-python = ">=3.14"
-dependencies = ["bcrypt==5.0.0", "oss2==2.19.0", "pyjwt==2.13.0"]
+dependencies = [
+  "openai==2.44.0",
+  "bcrypt==5.0.0",
+  "oss2==2.19.0",
+  "pyjwt==2.13.0",
+]
 
 [build-system]
 requires = ["hatchling"]
